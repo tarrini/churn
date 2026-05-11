@@ -1,0 +1,12 @@
+churn_intelligence:
+  target: dev
+  outputs:
+    dev:
+      type: bigquery
+      method: service-account
+      project: "{{ env_var('GCP_PROJECT_ID') }}"
+      dataset: staging
+      threads: 4
+      keyfile: "{{ env_var('GOOGLE_APPLICATION_CREDENTIALS') }}"
+      timeout_seconds: 300
+      location: "{{ env_var('GCP_LOCATION', 'us-central1') }}"

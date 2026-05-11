@@ -1,0 +1,9 @@
+version: 2
+
+sources:
+  - name: raw
+    database: "{{ env_var('GCP_PROJECT_ID') }}"
+    schema: raw
+    tables:
+      - name: telco_customer_churn
+        description: "Single landing table — IBM Telco Customer Churn CSV (Kaggle). Derived staging built in dbt."

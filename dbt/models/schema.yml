@@ -1,0 +1,43 @@
+version: 2
+
+models:
+  - name: stg_telco_customer_churn
+    columns:
+      - name: customer_id
+        tests: [not_null, unique]
+  - name: stg_customers
+    columns:
+      - name: customer_id
+        tests: [not_null, unique]
+  - name: stg_subscriptions
+    columns:
+      - name: customer_id
+        tests: [not_null]
+  - name: dim_customer
+    columns:
+      - name: customer_id
+        tests: [not_null, unique]
+  - name: fact_subscription_daily
+    columns:
+      - name: monthly_mrr
+        tests: [not_null]
+  - name: fact_usage_daily
+    columns:
+      - name: customer_id
+        tests: [not_null]
+  - name: fact_billing_monthly
+    columns:
+      - name: customer_id
+        tests: [not_null]
+  - name: fact_support_monthly
+    columns:
+      - name: customer_id
+        tests: [not_null]
+  - name: customer_health_snapshot_daily
+    columns:
+      - name: customer_id
+        tests: [not_null]
+  - name: fct_churn_training
+    columns:
+      - name: churned_30d
+        tests: [not_null]

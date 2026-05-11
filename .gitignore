@@ -1,0 +1,22 @@
+.venv/
+__pycache__/
+.pytest_cache/
+target/
+data/raw/*.csv
+logs/
+.env
+dbt_packages/
+*.pyc
+*.pyo
+*.pyd
+*.log
+.DS_Store
+
+# GCP service account keys — never commit (place keys here only if you ignore by name)
+churn-credentials.json
+*-sa.json
+*credentials*.json
+**/secrets/
+
+# Last trained Vertex AutoML model (local only)
+ml/vertex/last_vertex_model.resource_name
