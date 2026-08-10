@@ -1,0 +1,6 @@
+google-cloud-bigquery>=3.25.0
+google-cloud-aiplatform>=1.38.0
+google-cloud-storage>=2.18.0
+google-cloud-pubsub>=2.23.0
+dbt-bigquery>=1.8.0
+python-dotenv>=1.0.1

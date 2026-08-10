@@ -1,50 +1,79 @@
 # Looker (BigQuery) wiring
 
-## 1) One-time project id
+## Prerequisites (BigQuery tables)
 
-Edit `constants.lkml` and set `BIGQUERY_PROJECT_ID` to the same value as `GCP_PROJECT_ID` in your `.env` (the project where `raw`, `staging`, `mart`, `ml`, and `monitoring` datasets live).
+Looker only **reads** warehouse tables. Ensure these exist first:
+
+```powershell
+cd e:\churn-intelligence-gcp
+python -m pip install -r requirements.txt
+python scripts/run_sql_folder.py --folder sql/monitoring
+python scripts/run_sql_folder.py --folder sql/serving
+python scripts/verify_looker_tables.py
+```
+
+Required tables: `ml.customer_churn_scores`, `mart.retention_*`, `mart.dim_customer`,
+`monitoring.model_*`, `monitoring.precision_recall_top10_daily`,
+`monitoring.prediction_distribution_history`.
+
+## 1) Project id
+
+[`constants.lkml`](constants.lkml) `BIGQUERY_PROJECT_ID` must match `GCP_PROJECT_ID` in `.env`
+(currently `churn-495812`).
 
 ## 2) BigQuery connection in Looker
 
-1. In Looker: **Admin → Connections → New Connection** (or edit an existing BigQuery connection).
-2. Use a service account JSON that can read the datasets above (and run queries in the correct region, e.g. `us-central1`).
-3. Copy the **connection name** from Looker and set it in `models/churn_intelligence.model.lkml`:
+1. In Looker: **Admin → Connections → New Connection**.
+2. Dialect: **Google BigQuery Standard SQL**.
+3. Use service account JSON (`churn-credentials.json`) that can **read** datasets `mart`, `ml`, `monitoring`
+   and run queries in **`us-central1`**.
+4. Name the connection exactly:
 
-```lkml
-connection: "your_connection_name_here"
+```text
+churn_bigquery
 ```
+
+   Wired in [`models/churn_intelligence.model.lkml`](models/churn_intelligence.model.lkml).
+   If you choose another name, update the `connection:` line to match.
 
 ## 3) Load this LookML
 
-- **Looker Git integration:** point the project at this repo’s `looker/` folder (or copy these files into your Looker project).
-- **Validate:** run **Validate LookML** (or `lookml` CI if you use it). Fix any connection or permission errors before building content.
+- Point the Looker project at this repo’s `looker/` folder (Git sync or copy).
+- Expected layout:
 
-## 4) Building dashboards
+```text
+looker/
+  constants.lkml
+  models/churn_intelligence.model.lkml
+  views/*.view.lkml
+  dashboards/*.dashboard.lookml
+```
 
-Use the explores defined in `churn_intelligence.model.lkml`:
+- Run **Validate LookML** in the Looker IDE.
+
+## 4) Explores
 
 | Explore | Use for |
 |---------|---------|
-| `customer_risk` + `dim_customer` | Executive KPIs (MRR at risk, high-risk count), churn prob trends, segment splits |
-| `retention_decision_engine` | Retention Ops: prioritize by `roi_score`, filter `selected_for_intervention = Yes` |
-| `retention_what_if` | Capacity × threshold scenarios, `net_expected_value` |
-| `retention_marginal_gain` | Marginal lift when raising capacity |
-| `model_champion` | BQML vs Vertex champion summary |
-| `precision_recall_top10` | **`precision_at_10`** / **`recall_at_10`** by `snapshot_date` |
-| `model_metrics_history` | AUC / log loss trends by `run_ts` and `model_name` |
+| `customer_risk` + `dim_customer` | Executive KPIs |
+| `retention_decision_engine` | Retention Ops (filter `selected_for_intervention`) |
+| `retention_what_if` / `retention_marginal_gain` | What-if simulator |
+| `model_champion` / `precision_recall_top10` / `model_metrics_history` | Model monitoring |
+| `prediction_distribution` | Score drift |
 
-Suggested tiles match the Markdown specs under `dashboards/` (Executive, Retention Ops, Model Monitoring, What-if Simulator).
+**First explore:** `retention_decision_engine` → `selected_for_intervention = Yes` → sort by `priority_rank`.
 
-## 5) Screenshot checklist (for README / portfolio)
+## 5) Dashboards (LookML)
 
-Save PNGs under `docs/screenshots/` (create the folder if needed), in roughly this order:
+| File | Dashboard |
+|------|-----------|
+| `executive.dashboard.lookml` | Executive KPIs |
+| `retention_ops.dashboard.lookml` | Intervention shortlist |
+| `model_monitoring.dashboard.lookml` | Champion + AUC + precision/recall |
+| `what_if_simulator.dashboard.lookml` | Scenarios + marginal gain |
 
-1. Looker **Project** sidebar showing model + explores.
-2. **Explore** preview: `customer_risk` with `dim_customer` — KPI tiles or table (plan / country breakdown).
-3. **Explore**: `retention_decision_engine` — table sorted by `roi_score`, filter `selected_for_intervention`.
-4. **Explore**: `retention_what_if` — bar chart `net_expected_value` by `scenario_id`.
-5. **Explore**: `retention_marginal_gain` — marginal value by capacity step.
-6. **Explore**: `model_champion` — champion + AUC fields.
-7. One **saved dashboard** (or “Edit dashboard”) view for Executive; repeat for Ops, Monitoring, What-if if you split them.
+Markdown specs remain in `*.dashboard.md` for portfolio notes.
 
-Optional: blur any internal project names in screenshots if you share publicly; keep one unredacted copy for recruiters on request.
+## 6) Screenshot checklist
+
+Save under `docs/screenshots/`: project sidebar, `customer_risk`, `retention_decision_engine`, what-if, champion, saved dashboards.
