@@ -11,7 +11,7 @@ This project predicts churn risk, estimates `mrr_at_risk`, and creates actionabl
 |------|--------|
 | GCP project | `churn-499415` |
 | BigQuery location | `US` |
-| Cloud Run API | https://churn-intelligence-api-764726271474.us-central1.run.app |
+| Cloud Run API |
 | Pub/Sub topic | `usage-events-topic` |
 
 ### Cloud Run endpoints
